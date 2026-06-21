@@ -2,7 +2,6 @@
 
 This project implements a web-based visualization interface for computation graphs named **MyKafka**, built as part of the Advanced Programming course (Exercise 6). The application features a custom Java HTTP Server backend that handles dynamic content loading, configuration file uploads, and topic publication, coupled with a clean 3-panel layout.
 
-The project is metaphorically named **MyKafka** as its architecture draws inspiration from Apache Kafka's pub/sub (publish-subscribe) event streaming paradigm.
 
 ## Design Patterns & Architecture
 The system is built upon core software design patterns to ensure scalability, maintainability, and clean code:
