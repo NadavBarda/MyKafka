@@ -27,7 +27,6 @@ public class ConfLoader implements Servlet {
                 conf.create();
 
                 ConfigSingleton.get().set(conf);
-
                 sendSuccess(toClient, fileName);
             } else {
                 sendError(toClient, 400, "Bad Request: Missing or invalid file name/content");
