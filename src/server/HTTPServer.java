@@ -12,7 +12,4 @@ public interface HTTPServer extends Runnable {
 
     public void close();
 
-    public void setConfig(Config config);
-
-    public Config getConfig();
 }

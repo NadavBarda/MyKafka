@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import config.Config;
 
 public class MyHTTPServer extends Thread implements HTTPServer {
 
@@ -30,7 +29,6 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private final Map<String, Servlet> deleteServlets = new ConcurrentHashMap<>();
 
     private final Map<String, Map<String, Servlet>> methodMaps = new ConcurrentHashMap<>();
-    private Config config = null;
 
     public MyHTTPServer(int port, int numThreads) {
         this.port = port;
@@ -39,19 +37,6 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         methodMaps.put("GET", getServlets);
         methodMaps.put("POST", postServlets);
         methodMaps.put("DELETE", deleteServlets);
-    }
-
-    @Override
-    public void setConfig(Config newConfig) {
-        if (this.config != null) {
-            this.config.close(); // Clean up old agents safely
-        }
-        this.config = newConfig;
-    }
-
-    @Override
-    public Config getConfig() {
-        return this.config;
     }
 
     private Map<String, Servlet> getMapForMethod(String httpCommand) {

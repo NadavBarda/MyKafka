@@ -7,11 +7,11 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import server.RequestParser.RequestInfo;
-import graph.Message;
-import graph.TopicManagerSingleton;
+import config.GenericConfig;
+import config.ConfigSingleton;
 
 public class ConfLoader implements Servlet {
-
+   
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         if (ri == null) {
@@ -22,9 +22,11 @@ public class ConfLoader implements Servlet {
         try {
             String fileName = saveFileData(ri);
             if (fileName != null && !fileName.isEmpty()) {
-                
-                // Publish the filename to the "Configuration" topic
-                TopicManagerSingleton.get().getTopic("Configuration").publish(new Message(fileName));
+                GenericConfig conf = new GenericConfig();
+                conf.setConfFile("assets/config_files/" + fileName);
+                conf.create();
+
+                ConfigSingleton.get().set(conf);
 
                 sendSuccess(toClient, fileName);
             } else {
