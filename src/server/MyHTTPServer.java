@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import config.Config;
+
 public class MyHTTPServer extends Thread implements HTTPServer {
 
     private final int port;
@@ -28,6 +30,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private final Map<String, Servlet> deleteServlets = new ConcurrentHashMap<>();
 
     private final Map<String, Map<String, Servlet>> methodMaps = new ConcurrentHashMap<>();
+    private Config config = null;
 
     public MyHTTPServer(int port, int numThreads) {
         this.port = port;

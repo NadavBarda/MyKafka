@@ -73,7 +73,7 @@ public class RequestParser {
                     "Params: " + params + "\n" +
                     "Headers: " + headers + "\n" +
                     "Content Length: " + (content != null ? content.length : 0) + " bytes\n" +
-                    "Content: " + (content != null ? new String(content) : "null");
+                    "Content: \n" + (content != null ? new String(content) : "null");
         }
 
         public String[] getUriSegments() {

@@ -5,13 +5,11 @@ import java.io.OutputStream;
 
 import server.RequestParser.RequestInfo;
 
-public class ConfLoader implements Servlet {
+public class TopicDisplayer implements Servlet {
 
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
-
-        byte[] content = ri.getContent();
-        System.out.println(new String(content));
+        System.out.println(ri);
     }
 
     @Override

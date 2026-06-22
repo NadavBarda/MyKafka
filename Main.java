@@ -1,28 +1,16 @@
-import config.MathExampleConfig;
-import configs.LogAgent;
-import graph.Message;
-import graph.Topic;
-import graph.TopicManagerSingleton;
-import graph.TopicManagerSingleton.TopicManager;
+import server.MyHTTPServer;
+import servlets.ConfLoader;
+import servlets.TopicDisplayer;
+import server.HTTPServer;
 
-class Main {
-    public static void main(String[] args) {
-
-        MathExampleConfig config = new MathExampleConfig();
-        TopicManager tm = TopicManagerSingleton.get();
-        LogAgent logger = new LogAgent();
-
-        config.create();
-
-        Topic topic_A =  tm.getTopic("A");
-        Topic topic_B =  tm.getTopic("B");
-    
-        Topic topic_R3 = tm.getTopic("R3");
-        topic_R3.subscribe(logger);  
-
-        topic_A.publish(new Message(10));
-        topic_B.publish(new Message(5));
-
-              
+public class Main {
+    public static void main(String[] args) throws Exception {
+        HTTPServer server = new MyHTTPServer(8080, 5);
+        server.addServlet("POST", "/upload", new ConfLoader());
+        server.addServlet("GET", "/display", new TopicDisplayer());
+        server.start();
+        System.in.read();
+        server.close();
+        System.out.println("done");
     }
 }
