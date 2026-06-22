@@ -108,7 +108,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 OutputStream os = socket.getOutputStream()) {
 
-            RequestInfo ri = RequestParser.parseRequest(reader);
+            RequestInfo ri = MultipartRequestParser.parseRequest(reader);
             if (ri == null)
                 return;
 
