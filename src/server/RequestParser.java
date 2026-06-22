@@ -103,6 +103,14 @@ public class RequestParser {
         int contentLength = parseHeaders(reader, headers);
 
         // Parse intermediate body parameters
+        parseBodyParams(reader, params);
+
+        byte[] content = readContent(reader, contentLength);
+
+        return new RequestInfo(httpCommand, uri, uriParts, params, headers, content);
+    }
+
+    private static void parseBodyParams(BufferedReader reader, Map<String, String> params) throws IOException {
         String line;
         while ((line = reader.readLine()) != null && !line.isEmpty()) {
             String[] keyValue = line.split("=", 2);
@@ -112,10 +120,6 @@ public class RequestParser {
                 params.put(keyValue[0].trim(), "");
             }
         }
-
-        byte[] content = readContent(reader, contentLength);
-
-        return new RequestInfo(httpCommand, uri, uriParts, params, headers, content);
     }
 
     private static String[] splitRequestLine(String requestLine) throws IOException {
