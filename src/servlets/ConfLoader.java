@@ -5,9 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import server.RequestParser.RequestInfo;
+import graph.Message;
+import graph.TopicManagerSingleton;
 
 public class ConfLoader implements Servlet {
 
@@ -21,6 +22,10 @@ public class ConfLoader implements Servlet {
         try {
             String fileName = saveFileData(ri);
             if (fileName != null && !fileName.isEmpty()) {
+                
+                // Publish the filename to the "Configuration" topic
+                TopicManagerSingleton.get().getTopic("Configuration").publish(new Message(fileName));
+
                 sendSuccess(toClient, fileName);
             } else {
                 sendError(toClient, 400, "Bad Request: Missing or invalid file name/content");
@@ -76,7 +81,8 @@ public class ConfLoader implements Servlet {
         String body = "<html>" +
                 "<head><title>Success</title>" +
                 "<style>" +
-                "body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }" +
+                "body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }"
+                +
                 "h1 { color: #38bdf8; }" +
                 "p { color: #94a3b8; }" +
                 "</style>" +
@@ -102,7 +108,8 @@ public class ConfLoader implements Servlet {
         String body = "<html>" +
                 "<head><title>" + statusText + "</title>" +
                 "<style>" +
-                "body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }" +
+                "body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }"
+                +
                 "h1 { color: #f87171; }" +
                 "p { color: #94a3b8; }" +
                 "</style>" +

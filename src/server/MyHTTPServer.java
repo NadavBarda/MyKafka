@@ -41,6 +41,19 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         methodMaps.put("DELETE", deleteServlets);
     }
 
+    @Override
+    public void setConfig(Config newConfig) {
+        if (this.config != null) {
+            this.config.close(); // Clean up old agents safely
+        }
+        this.config = newConfig;
+    }
+
+    @Override
+    public Config getConfig() {
+        return this.config;
+    }
+
     private Map<String, Servlet> getMapForMethod(String httpCommand) {
         if (httpCommand == null) {
             return null;
