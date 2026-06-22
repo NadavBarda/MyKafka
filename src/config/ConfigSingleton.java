@@ -13,7 +13,6 @@ public class ConfigSingleton {
         }
 
         public synchronized void set(Config config) {
-            // Gracefully close previous configuration agents to avoid resource/thread leaks
             if (this.config != null) {
                 this.config.close();
             }
