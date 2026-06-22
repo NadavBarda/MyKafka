@@ -1,35 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Control Panel</title>
-    <link rel="stylesheet" href="form.css">
-</head>
-<body>
+    <link rel="stylesheet" href="form.css" />
+  </head>
+  <body>
     <div class="container">
-        <h2>Configuration</h2>
-        <form action="http://localhost:8080/upload" method="post" enctype="multipart/form-data" target="graph_frame">
-            <div class="form-group flex-row">
-                <input type="file" name="file" required>
-                <input type="submit" value="Deploy">
-            </div>
-        </form>
+      <h2>Configuration</h2>
+      <form
+        action="http://localhost:8080/upload"
+        method="post"
+        target="graph_frame"
+      >
+        <div class="form-group flex-row">
+          <input type="file" name="file" required />
+          <input type="submit" value="Deploy" />
+        </div>
+      </form>
     </div>
 
     <div class="container">
-        <h2>Publish to Topic</h2>
-        <form action="http://localhost:8080/publish" method="get" target="table_frame">
-            <div class="form-group">
-                <label for="topic">Topic name:</label>
-                <input type="text" id="topic" name="topic" required placeholder="Topic Name">
-            </div>
-            <div class="form-group">
-                <label for="message">Message:</label>
-                <input type="text" id="message" name="message" required placeholder="Message Value">
-            </div>
-            <input type="submit" value="Send">
-        </form>
+      <h2>Publish to Topic</h2>
+      <form
+        action="http://localhost:8080/publish"
+        method="get"
+        target="table_frame"
+      >
+        <div class="form-group">
+          <label for="topic">Topic name:</label>
+          <input
+            type="text"
+            id="topic"
+            name="topic"
+            required
+            placeholder="Topic Name"
+          />
+        </div>
+        <div class="form-group">
+          <label for="message">Message:</label>
+          <input
+            type="text"
+            id="message"
+            name="message"
+            required
+            placeholder="Message Value"
+          />
+        </div>
+        <input type="submit" value="Send" />
+      </form>
     </div>
-</body>
+  </body>
 </html>
