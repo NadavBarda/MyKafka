@@ -41,7 +41,7 @@ public class PlusAgent implements Agent {
 
     @Override
     public String getName() {
-        return "PlusAgent";
+        return "PlusAgent_" + topicX + "+" + topicY + "to" + topicPub;
     }
 
     @Override

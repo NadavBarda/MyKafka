@@ -36,7 +36,7 @@ public class IncAgent implements Agent {
 
     @Override
     public String getName() {
-        return "IncAgent";
+        return "IncAgent_" + topicSub + "to" + topicPub;
     }
 
     @Override

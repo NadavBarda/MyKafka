@@ -36,6 +36,21 @@ public class ConfLoader implements Servlet {
             Graph graph = new Graph();
             graph.createFromTopics();
             
+            if (graph.hasCycles()) {
+                // Rollback: remove all generated data because of the invalid file
+                ConfigSingleton.get().close();
+                TopicManagerSingleton.get().clear();
+                
+                // Delete the uploaded invalid configuration file
+                File uploadedFile = new File("assets/config_files/" + fileName);
+                if (uploadedFile.exists()) {
+                    uploadedFile.delete();
+                }
+                
+                sendError(toClient, 400, "The computational graph could not be created because the configuration contains cycles.");
+                return;
+            }
+            
             List<String> htmlLines = HtmlGraphWriter.getGraphHTML(graph);
             String fullHtml = String.join("\n", htmlLines);
             

@@ -57,12 +57,25 @@ public class HtmlGraphWriter {
 
     private static String generateJsData(Graph graph) {
         if (graph == null || graph.isEmpty()) {
-            return "const topics = [];\nconst agents = [];\nconst edges = [];\n";
+            return "window.topics = [];\nwindow.agents = [];\nwindow.edges = [];\n";
         }
 
-        // 1. Separate Topic nodes and Agent nodes
         List<Node> topicNodes = new ArrayList<>();
         List<Node> agentNodes = new ArrayList<>();
+        separateNodes(graph, topicNodes, agentNodes);
+
+        Map<Node, Integer> ranks = assignRanks(graph);
+        Map<String, int[]> positions = computePositions(graph, ranks);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(serializeTopics(topicNodes, positions));
+        sb.append(serializeAgents(agentNodes, positions));
+        sb.append(serializeEdges(graph));
+
+        return sb.toString();
+    }
+
+    private static void separateNodes(Graph graph, List<Node> topicNodes, List<Node> agentNodes) {
         for (Node node : graph) {
             if (node.getName().startsWith("T")) {
                 topicNodes.add(node);
@@ -70,11 +83,9 @@ public class HtmlGraphWriter {
                 agentNodes.add(node);
             }
         }
+    }
 
-        // 2. Perform a Layered/Rank Layout Algorithm to compute X and Y coordinates
-        Map<Node, Integer> ranks = assignRanks(graph);
-
-        // Group nodes by rank to layout vertically in columns
+    private static Map<String, int[]> computePositions(Graph graph, Map<Node, Integer> ranks) {
         Map<Integer, List<Node>> nodesByRank = new TreeMap<>();
         for (Node node : graph) {
             int r = ranks.getOrDefault(node, 0);
@@ -82,9 +93,7 @@ public class HtmlGraphWriter {
         }
 
         int maxRank = nodesByRank.isEmpty() ? 0 : ((TreeMap<Integer, List<Node>>) nodesByRank).lastKey();
-
-        // Canvas size: 600 width, 400 height
-        Map<String, int[]> positions = new HashMap<>(); // nodeName -> [x, y]
+        Map<String, int[]> positions = new HashMap<>();
         int width = 600;
         int height = 400;
         int horizontalMargin = 80;
@@ -95,31 +104,27 @@ public class HtmlGraphWriter {
             List<Node> colNodes = entry.getValue();
             int nodesInCol = colNodes.size();
 
-            // Compute X coordinate for this column
             int x = (maxRank == 0) 
                     ? width / 2 
                     : horizontalMargin + rank * ((width - 2 * horizontalMargin) / maxRank);
 
-            // Compute Y coordinates for nodes in this column
             for (int i = 0; i < nodesInCol; i++) {
-                int y;
-                if (nodesInCol == 1) {
-                    y = height / 2;
-                } else {
-                    y = verticalMargin + i * ((height - 2 * verticalMargin) / (nodesInCol - 1));
-                }
+                int y = (nodesInCol == 1) 
+                        ? height / 2 
+                        : verticalMargin + i * ((height - 2 * verticalMargin) / (nodesInCol - 1));
                 positions.put(colNodes.get(i).getName(), new int[]{x, y});
             }
         }
+        return positions;
+    }
 
-        // 3. Serialize topics
+    private static String serializeTopics(List<Node> topicNodes, Map<String, int[]> positions) {
         StringBuilder sb = new StringBuilder();
         sb.append("window.topics = [\n");
         for (int i = 0; i < topicNodes.size(); i++) {
             Node node = topicNodes.get(i);
-            String rawName = node.getName().substring(1); // Strip prefix 'T'
+            String rawName = node.getName().substring(1);
             
-            // Retrieve last message value from TopicManager
             String value = "N/A";
             Topic t = TopicManagerSingleton.get().getTopic(rawName);
             if (t != null) {
@@ -136,12 +141,15 @@ public class HtmlGraphWriter {
             sb.append("\n");
         }
         sb.append("];\n\n");
+        return sb.toString();
+    }
 
-        // 4. Serialize agents
+    private static String serializeAgents(List<Node> agentNodes, Map<String, int[]> positions) {
+        StringBuilder sb = new StringBuilder();
         sb.append("window.agents = [\n");
         for (int i = 0; i < agentNodes.size(); i++) {
             Node node = agentNodes.get(i);
-            String rawName = node.getName().substring(1); // Strip prefix 'A'
+            String rawName = node.getName().substring(1);
             int[] pos = positions.getOrDefault(node.getName(), new int[]{300, 200});
             sb.append(String.format("    { id: '%s', x: %d, y: %d }", 
                     escapeJs(rawName), pos[0], pos[1]));
@@ -149,8 +157,11 @@ public class HtmlGraphWriter {
             sb.append("\n");
         }
         sb.append("];\n\n");
+        return sb.toString();
+    }
 
-        // 5. Serialize edges
+    private static String serializeEdges(Graph graph) {
+        StringBuilder sb = new StringBuilder();
         sb.append("window.edges = [\n");
         List<String> edgeList = new ArrayList<>();
         for (Node srcNode : graph) {
@@ -164,7 +175,6 @@ public class HtmlGraphWriter {
         }
         sb.append(String.join(",\n", edgeList));
         sb.append("\n];\n");
-
         return sb.toString();
     }
 
@@ -200,8 +210,14 @@ public class HtmlGraphWriter {
             }
         }
 
+        int maxRelaxations = graph.size() * graph.size();
+        int relaxations = 0;
+
         // Relax ranks
         while (!queue.isEmpty()) {
+            if (relaxations++ > maxRelaxations) {
+                break; // Prevent infinite loop in case of cycles
+            }
             Node u = queue.poll();
             int uRank = ranks.getOrDefault(u, 0);
             for (Node v : u.getEdges()) {
