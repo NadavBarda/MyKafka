@@ -21,8 +21,6 @@ public class MathExampleConfig implements Config {
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'close'");
     }
     
 }

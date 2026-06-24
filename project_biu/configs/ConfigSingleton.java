@@ -1,4 +1,4 @@
-package config;
+package configs;
 
 /**
  * Singleton container for the active system configuration.

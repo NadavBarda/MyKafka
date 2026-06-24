@@ -14,6 +14,6 @@ public class Main {
         server.start();
         System.in.read();
         server.close();
-        config.ConfigSingleton.get().close();
+        configs.ConfigSingleton.get().close();
     }
 }

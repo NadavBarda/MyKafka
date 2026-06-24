@@ -7,9 +7,9 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import server.RequestParser.RequestInfo;
-import config.GenericConfig;
-import config.ConfigSingleton;
-import config.Graph;
+import configs.GenericConfig;
+import configs.ConfigSingleton;
+import configs.Graph;
 import graph.TopicManagerSingleton;
 import views.HtmlGraphWriter;
 import java.util.List;
@@ -129,25 +129,7 @@ public class ConfLoader implements Servlet {
         toClient.flush();
     }
 
-    private void sendSuccess(OutputStream toClient, String fileName) throws IOException {
-        String body = "<html>" +
-                "<head><title>Success</title>" +
-                "<style>" +
-                "body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }"
-                +
-                "h1 { color: #38bdf8; }" +
-                "p { color: #94a3b8; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<h1>✅ File Uploaded Successfully</h1>" +
-                "<p>Saved config as: <strong>" + HtmlUtil.escapeHtml(fileName) + "</strong></p>" +
-                "</body>" +
-                "</html>";
-
-        sendResponse(toClient, 200, "OK", body);
-    }
-
+    
     private void sendError(OutputStream toClient, int statusCode, String message) throws IOException {
         String statusText = (statusCode == 400) ? "Bad Request" : "Internal Server Error";
         String body = "<html>" +

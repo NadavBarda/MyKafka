@@ -1,7 +1,7 @@
 package views;
 
-import config.Graph;
-import config.Node;
+import configs.Graph;
+import configs.Node;
 import graph.Topic;
 import graph.TopicManagerSingleton;
 import graph.Message;
