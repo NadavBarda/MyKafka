@@ -20,68 +20,82 @@ public class TopicDisplayer implements Servlet {
             return;
         }
 
-        Map<String, String> params = ri.getParams();
-        String topicName = (params != null) ? params.get("topic") : null;
-        String messageVal = (params != null) ? params.get("message") : null;
+        publishMessage(ri.getParams());
+
+        String body = generateHtml();
+        sendSuccess(toClient, body);
+    }
+
+    private void publishMessage(Map<String, String> params) {
+        if (params == null) {
+            return;
+        }
+        String topicName = params.get("topic");
+        String messageVal = params.get("message");
 
         if (topicName != null && !topicName.trim().isEmpty() && messageVal != null) {
             TopicManagerSingleton.get().getTopic(topicName).publish(new Message(messageVal));
         }
+    }
 
+    private String generateHtml() {
         // Generate HTML table of all topics and their last values
         StringBuilder sb = new StringBuilder();
         sb.append("<html>")
-          .append("<head><title>Topics Status</title>")
-          .append("<style>")
-          .append("body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }")
-          .append("table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0; background-color: #1e293b; border-radius: 8px; overflow: hidden; }")
-          .append("th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }")
-          .append("th { background-color: #38bdf8; color: #0f172a; font-weight: bold; }")
-          .append("tr:hover { background-color: #334155; }")
-          .append("</style>")
-          .append("</head>")
-          .append("<body>")
-          .append("<h2>Topic Values Dashboard</h2>")
-          .append("<table>")
-          .append("<thead><tr><th>Topic Name</th><th>Last Message Value</th></tr></thead>")
-          .append("<tbody>");
+                .append("<head><title>Topics Status</title>")
+                .append("<style>")
+                .append("body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }")
+                .append("table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0; background-color: #1e293b; border-radius: 8px; overflow: hidden; }")
+                .append("th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }")
+                .append("th { background-color: #38bdf8; color: #0f172a; font-weight: bold; }")
+                .append("tr:hover { background-color: #334155; }")
+                .append("</style>")
+                .append("</head>")
+                .append("<body>")
+                .append("<h2>Topic Values Dashboard</h2>")
+                .append("<table>")
+                .append("<thead><tr><th>Topic Name</th><th>Last Message Value</th></tr></thead>")
+                .append("<tbody>");
 
         Collection<Topic> topics = TopicManagerSingleton.get().getTopics();
         for (Topic t : topics) {
             Message lastMsg = t.getLastMessage();
-            String val = (lastMsg != null) ? lastMsg.asText : "<em>No message yet</em>";
+            String val = (lastMsg != null) ? HtmlUtil.escapeHtml(lastMsg.asText) : "<em>No message yet</em>";
             sb.append("<tr>")
-              .append("<td>").append(t.getName()).append("</td>")
-              .append("<td>").append(val).append("</td>")
-              .append("</tr>");
+                    .append("<td>").append(HtmlUtil.escapeHtml(t.getName())).append("</td>")
+                    .append("<td>").append(val).append("</td>")
+                    .append("</tr>");
         }
 
         sb.append("</tbody>")
-          .append("</table>")
-          .append("</body>")
-          .append("</html>");
+                .append("</table>")
+                .append("</body>")
+                .append("</html>");
 
-        String body = sb.toString();
-        String response = "HTTP/1.1 200 OK\r\n" +
-                          "Content-Type: text/html; charset=UTF-8\r\n" +
-                          "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
-                          "Connection: close\r\n\r\n" +
-                          body;
+        return sb.toString();
+    }
+
+    private void sendResponse(OutputStream toClient, int statusCode, String statusText, String body)
+            throws IOException {
+        String response = "HTTP/1.1 " + statusCode + " " + statusText + "\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
+                "Connection: close\r\n\r\n" +
+                body;
 
         toClient.write(response.getBytes(StandardCharsets.UTF_8));
         toClient.flush();
     }
 
+    private void sendSuccess(OutputStream toClient, String body) throws IOException {
+        sendResponse(toClient, 200, "OK", body);
+    }
+
     private void sendError(OutputStream toClient, int statusCode, String message) throws IOException {
         String statusText = (statusCode == 400) ? "Bad Request" : "Internal Server Error";
-        String body = "<html><body><h1>" + statusCode + " " + statusText + "</h1><p>" + message + "</p></body></html>";
-        String response = "HTTP/1.1 " + statusCode + " " + statusText + "\r\n" +
-                          "Content-Type: text/html; charset=UTF-8\r\n" +
-                          "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
-                          "Connection: close\r\n\r\n" +
-                          body;
-        toClient.write(response.getBytes(StandardCharsets.UTF_8));
-        toClient.flush();
+        String body = "<html><body><h1>" + statusCode + " " + statusText + "</h1><p>" + HtmlUtil.escapeHtml(message)
+                + "</p></body></html>";
+        sendResponse(toClient, statusCode, statusText, body);
     }
 
     @Override
