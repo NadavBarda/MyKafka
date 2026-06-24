@@ -8,8 +8,14 @@ public class Topic {
     private final List<Agent> subs = new ArrayList<>();
     private final List<Agent> pubs = new ArrayList<>();
 
+    private volatile Message lastMessage = null;
+
     Topic(String name) {
         this.name = name;
+    }
+
+    public Message getLastMessage() {
+        return this.lastMessage;
     }
 
     public void subscribe(Agent a) {
@@ -28,6 +34,7 @@ public class Topic {
 
     public void publish(Message m) {
         if (m != null) {
+            this.lastMessage = m;
             for (Agent a : subs) {
                 a.callback(this.name, m);
             }

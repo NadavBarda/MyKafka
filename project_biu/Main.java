@@ -8,11 +8,10 @@ public class Main {
         HTTPServer server = new MyHTTPServer(8080, 5);
         
         server.addServlet("POST", "/upload", new ConfLoader());
-        server.addServlet("GET", "/display", new TopicDisplayer());
+        server.addServlet("GET", "/publish", new TopicDisplayer());
         server.start();
         System.in.read();
         server.close();
         config.ConfigSingleton.get().close();
-        System.out.println("done");
     }
 }
