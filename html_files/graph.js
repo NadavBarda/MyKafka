@@ -1,8 +1,8 @@
 const canvas = document.getElementById('graphCanvas');
 const ctx = canvas.getContext('2d');
 
-// Sample Data for (A+B)*(A-B)
-const topics = [
+// Dynamic Data check (falls back to sample data if not defined by server)
+const topics = window.topics || [
     { id: 'A', value: '5.0', x: 100, y: 300 },
     { id: 'B', value: '3.0', x: 300, y: 100 },
     { id: 'C', value: '8.0', x: 500, y: 200 },
@@ -10,13 +10,13 @@ const topics = [
     { id: 'E', value: '16.0', x: 500, y: 400 }
 ];
 
-const agents = [
+const agents = window.agents || [
     { id: 'plus agent', x: 300, y: 200 },
     { id: 'min agent', x: 300, y: 400 },
     { id: 'mul agent', x: 400, y: 300 }
 ];
 
-const edges = [
+const edges = window.edges || [
     { from: 'A', to: 'plus agent', isAgent: true },
     { from: 'B', to: 'plus agent', isAgent: true },
     { from: 'plus agent', to: 'C', isAgent: false },

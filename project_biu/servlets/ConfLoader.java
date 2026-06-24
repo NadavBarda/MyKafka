@@ -9,7 +9,10 @@ import java.nio.charset.StandardCharsets;
 import server.RequestParser.RequestInfo;
 import config.GenericConfig;
 import config.ConfigSingleton;
+import config.Graph;
 import graph.TopicManagerSingleton;
+import views.HtmlGraphWriter;
+import java.util.List;
 
 public class ConfLoader implements Servlet {
    
@@ -28,7 +31,15 @@ public class ConfLoader implements Servlet {
             }
 
             deployConfig(fileName);
-            sendSuccess(toClient, fileName);
+            
+            // Generate computational graph from currently active topics
+            Graph graph = new Graph();
+            graph.createFromTopics();
+            
+            List<String> htmlLines = HtmlGraphWriter.getGraphHTML(graph);
+            String fullHtml = String.join("\n", htmlLines);
+            
+            sendResponse(toClient, 200, "OK", fullHtml);
         } catch (Exception e) {
             sendError(toClient, 500, "Internal Server Error: " + e.getMessage());
         }
