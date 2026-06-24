@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import server.RequestParser.RequestInfo;
 import config.GenericConfig;
 import config.ConfigSingleton;
+import graph.TopicManagerSingleton;
 
 public class ConfLoader implements Servlet {
    
@@ -21,19 +22,32 @@ public class ConfLoader implements Servlet {
 
         try {
             String fileName = saveFileData(ri);
-            if (fileName != null && !fileName.isEmpty()) {
-                GenericConfig conf = new GenericConfig();
-                conf.setConfFile("assets/config_files/" + fileName);
-                conf.create();
-
-                ConfigSingleton.get().set(conf);
-                sendSuccess(toClient, fileName);
-            } else {
+            if (fileName == null || fileName.isEmpty()) {
                 sendError(toClient, 400, "Bad Request: Missing or invalid file name/content");
+                return;
             }
+
+            deployConfig(fileName);
+            sendSuccess(toClient, fileName);
         } catch (Exception e) {
             sendError(toClient, 500, "Internal Server Error: " + e.getMessage());
         }
+    }
+
+    private void deployConfig(String fileName) {
+        // 1. Close and clean up the current configuration (stops old running agents)
+        ConfigSingleton.get().close();
+
+        // 2. Clear out the old topics from the TopicManager singleton
+        TopicManagerSingleton.get().clear();
+
+        // 3. Create the new config
+        GenericConfig conf = new GenericConfig();
+        conf.setConfFile("assets/config_files/" + fileName);
+        conf.create();
+
+        // 4. Set the new config in the singleton
+        ConfigSingleton.get().set(conf);
     }
 
     private String saveFileData(RequestInfo ri) {
@@ -78,6 +92,17 @@ public class ConfLoader implements Servlet {
         }
     }
 
+    private void sendResponse(OutputStream toClient, int statusCode, String statusText, String body) throws IOException {
+        String response = "HTTP/1.1 " + statusCode + " " + statusText + "\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
+                "Connection: close\r\n\r\n" +
+                body;
+
+        toClient.write(response.getBytes(StandardCharsets.UTF_8));
+        toClient.flush();
+    }
+
     private void sendSuccess(OutputStream toClient, String fileName) throws IOException {
         String body = "<html>" +
                 "<head><title>Success</title>" +
@@ -90,18 +115,11 @@ public class ConfLoader implements Servlet {
                 "</head>" +
                 "<body>" +
                 "<h1>✅ File Uploaded Successfully</h1>" +
-                "<p>Saved config as: <strong>" + fileName + "</strong></p>" +
+                "<p>Saved config as: <strong>" + HtmlUtil.escapeHtml(fileName) + "</strong></p>" +
                 "</body>" +
                 "</html>";
 
-        String response = "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
-                "Connection: close\r\n\r\n" +
-                body;
-
-        toClient.write(response.getBytes(StandardCharsets.UTF_8));
-        toClient.flush();
+        sendResponse(toClient, 200, "OK", body);
     }
 
     private void sendError(OutputStream toClient, int statusCode, String message) throws IOException {
@@ -117,23 +135,19 @@ public class ConfLoader implements Servlet {
                 "</head>" +
                 "<body>" +
                 "<h1>❌ " + statusText + "</h1>" +
-                "<p>" + message + "</p>" +
+                "<p>" + HtmlUtil.escapeHtml(message) + "</p>" +
                 "</body>" +
                 "</html>";
 
-        String response = "HTTP/1.1 " + statusCode + " " + statusText + "\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
-                "Connection: close\r\n\r\n" +
-                body;
-
-        toClient.write(response.getBytes(StandardCharsets.UTF_8));
-        toClient.flush();
+        sendResponse(toClient, statusCode, statusText, body);
     }
 
     @Override
     public void close() throws IOException {
-        System.out.println("close");
+        System.out.println("Closing ConfLoader...");
+        // Stop all active agents
+        ConfigSingleton.get().close();
+        // Clear topics
+        TopicManagerSingleton.get().clear();
     }
-
 }

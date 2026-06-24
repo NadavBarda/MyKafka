@@ -9,17 +9,27 @@ public class TopicManagerSingleton {
         private static final TopicManager instance = new TopicManager();
         private final ConcurrentHashMap<String, Topic> topics = new ConcurrentHashMap<>();
 
-        private TopicManager() {}
+        private TopicManager() {
+        }
 
         public Topic getTopic(String name) {
-            if (name == null) {
+            String trimmedName = null;
+            if (name == null || (trimmedName = name.trim()).isEmpty()) {
                 return null;
             }
-            return topics.computeIfAbsent(name, k -> new Topic(k));
+            return topics.computeIfAbsent(trimmedName, k -> new Topic(k));
         }
 
         public Collection<Topic> getTopics() {
             return topics.values();
+        }
+
+        public boolean topicExists(String topicName) {
+            String trimmedName = null;
+            if (topicName == null || (trimmedName = topicName.trim()).isEmpty()) {
+                return false;
+            }
+            return topics.containsKey(trimmedName);
         }
 
         public void clear() {
