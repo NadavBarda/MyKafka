@@ -1,6 +1,7 @@
 package server;
 
 import servlets.Servlet;
+import servlets.Default404Servlet;
 import server.RequestParser.RequestInfo;
 
 import java.io.BufferedReader;
@@ -29,6 +30,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private final Map<String, Servlet> deleteServlets = new ConcurrentHashMap<>();
 
     private final Map<String, Map<String, Servlet>> methodMaps = new ConcurrentHashMap<>();
+    private final Servlet default404Servlet = new Default404Servlet();
 
     public MyHTTPServer(int port, int numThreads) {
         this.port = port;
@@ -117,7 +119,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             if (servlet != null) {
                 servlet.handle(ri, os);
             } else {
-                send404(os);
+                default404Servlet.handle(ri, os);
             }
 
         } catch (Exception e) {
@@ -145,16 +147,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         return bestMatch;
     }
 
-    private void send404(OutputStream os) throws IOException {
-        String body = "<html><body><h1>404 Not Found</h1><p>No matching servlet was found for this request.</p></body></html>";
-        String response = "HTTP/1.1 404 Not Found\r\n" +
-                "Content-Type: text/html; charset=UTF-8\r\n" +
-                "Content-Length: " + body.getBytes().length + "\r\n" +
-                "Connection: close\r\n\r\n" +
-                body;
-        os.write(response.getBytes());
-        os.flush();
-    }
+
 
     @Override
     public void close() {
@@ -171,9 +164,10 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         threadPool.shutdown();
 
         // Close all servlets in all maps safely
-        closeAllServlets(getServlets);
-        closeAllServlets(postServlets);
-        closeAllServlets(deleteServlets);
+
+        for (Map<String, Servlet> map : methodMaps.values()) {
+            closeAllServlets(map);
+        }
     }
 
     private void closeAllServlets(Map<String, Servlet> map) {
@@ -184,5 +178,6 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 // Ignore servlet closing errors
             }
         }
+        map.clear();
     }
 }
