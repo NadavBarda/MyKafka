@@ -16,14 +16,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 public class MyHTTPServer extends Thread implements HTTPServer {
 
     private final int port;
 
     private final ExecutorService threadPool;
+    private final Thread ownerThread;
     private ServerSocket serverSocket;
     private volatile boolean running = false;
+    private volatile boolean closed = false;
 
     private final Map<String, Servlet> getServlets = new ConcurrentHashMap<>();
     private final Map<String, Servlet> postServlets = new ConcurrentHashMap<>();
@@ -35,6 +36,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     public MyHTTPServer(int port, int numThreads) {
         this.port = port;
         this.threadPool = Executors.newFixedThreadPool(numThreads);
+        this.ownerThread = Thread.currentThread();
 
         methodMaps.put("GET", getServlets);
         methodMaps.put("POST", postServlets);
@@ -77,8 +79,6 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             serverSocket.setSoTimeout(1000);
             serverListener();
         } catch (IOException e) {
-        } finally {
-            close();
         }
     }
 
@@ -147,10 +147,12 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         return bestMatch;
     }
 
-
-
     @Override
     public void close() {
+        if (Thread.currentThread() != ownerThread || closed) {
+            return;
+        }
+        closed = true;
         running = false;
 
         try {
