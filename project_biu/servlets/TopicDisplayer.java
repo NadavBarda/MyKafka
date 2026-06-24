@@ -6,10 +6,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 
-import server.RequestParser.RequestInfo;
 import graph.TopicManagerSingleton;
 import graph.Topic;
 import graph.Message;
+import server.RequestParser.RequestInfo;
 
 public class TopicDisplayer implements Servlet {
 
@@ -88,4 +88,5 @@ public class TopicDisplayer implements Servlet {
     public void close() throws IOException {
         System.out.println("close");
     }
+
 }

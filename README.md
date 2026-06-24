@@ -18,7 +18,7 @@ The system manages a computation graph consisting of rectangular **Topics** (hol
     *   `form.html` / `form.css`: Control panel containing Configuration Upload and Publish forms.
     *   `graph.html` / `graph.css` / `graph.js`: HTML5 Canvas visualization for rendering the computation graph.
     *   `temp.html` / `temp.css`: Empty state placeholder.
-*   `src/`: Java source code implementing the HTTP Server, Servlets, and backend logic.
+*   `project_biu/`: Java source code implementing the HTTP Server, Servlets, and backend logic.
 
 ## Installation
 Ensure you have Java Development Kit (JDK) installed (version 17 or higher recommended).
@@ -30,7 +30,7 @@ Ensure you have Java Development Kit (JDK) installed (version 17 or higher recom
    ```
 2. Compile the Java files:
    ```bash
-   javac -d bin src/*.java
+   javac -d bin project_biu/*.java
    ```
 
 ## Running the Application
