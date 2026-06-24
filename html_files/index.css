@@ -14,7 +14,7 @@ body, html {
     border-right: 1px solid #ccc;
 }
 .right-panel {
-    flex: 0 0 250px;
+    flex: 0 0 300px;
 }
 iframe {
     width: 100%;
