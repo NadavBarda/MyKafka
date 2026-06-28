@@ -3,6 +3,7 @@ import servlets.ConfLoader;
 import servlets.TopicDisplayer;
 import servlets.HtmlLoader;
 import server.HTTPServer;
+import configs.SystemResetService;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -14,6 +15,6 @@ public class Main {
         server.start();
         System.in.read();
         server.close();
-        configs.ConfigSingleton.get().close();
+        SystemResetService.cleanAll();
     }
 }

@@ -13,13 +13,16 @@ import java.nio.file.Files;
 import java.util.*;
 
 /**
- * HtmlGraphWriter generates the HTML/JS representation of a computational Graph.
- * It uses a layered layout algorithm to automatically position nodes on a canvas.
+ * HtmlGraphWriter generates the HTML/JS representation of a computational
+ * Graph.
+ * It uses a layered layout algorithm to automatically position nodes on a
+ * canvas.
  */
 public class HtmlGraphWriter {
 
     /**
-     * Generates a list of HTML source code lines representing the computational graph.
+     * Generates a list of HTML source code lines representing the computational
+     * graph.
      *
      * @param graph the computational Graph instance.
      * @return a List of strings containing the complete HTML response.
@@ -104,15 +107,15 @@ public class HtmlGraphWriter {
             List<Node> colNodes = entry.getValue();
             int nodesInCol = colNodes.size();
 
-            int x = (maxRank == 0) 
-                    ? width / 2 
+            int x = (maxRank == 0)
+                    ? width / 2
                     : horizontalMargin + rank * ((width - 2 * horizontalMargin) / maxRank);
 
             for (int i = 0; i < nodesInCol; i++) {
-                int y = (nodesInCol == 1) 
-                        ? height / 2 
+                int y = (nodesInCol == 1)
+                        ? height / 2
                         : verticalMargin + i * ((height - 2 * verticalMargin) / (nodesInCol - 1));
-                positions.put(colNodes.get(i).getName(), new int[]{x, y});
+                positions.put(colNodes.get(i).getName(), new int[] { x, y });
             }
         }
         return positions;
@@ -124,7 +127,7 @@ public class HtmlGraphWriter {
         for (int i = 0; i < topicNodes.size(); i++) {
             Node node = topicNodes.get(i);
             String rawName = node.getName().substring(1);
-            
+
             String value = "N/A";
             Topic t = TopicManagerSingleton.get().getTopic(rawName);
             if (t != null) {
@@ -134,10 +137,11 @@ public class HtmlGraphWriter {
                 }
             }
 
-            int[] pos = positions.getOrDefault(node.getName(), new int[]{300, 200});
-            sb.append(String.format("    { id: '%s', value: '%s', x: %d, y: %d }", 
+            int[] pos = positions.getOrDefault(node.getName(), new int[] { 300, 200 });
+            sb.append(String.format("    { id: '%s', value: '%s', x: %d, y: %d }",
                     escapeJs(rawName), escapeJs(value), pos[0], pos[1]));
-            if (i < topicNodes.size() - 1) sb.append(",");
+            if (i < topicNodes.size() - 1)
+                sb.append(",");
             sb.append("\n");
         }
         sb.append("];\n\n");
@@ -150,10 +154,11 @@ public class HtmlGraphWriter {
         for (int i = 0; i < agentNodes.size(); i++) {
             Node node = agentNodes.get(i);
             String rawName = node.getName().substring(1);
-            int[] pos = positions.getOrDefault(node.getName(), new int[]{300, 200});
-            sb.append(String.format("    { id: '%s', x: %d, y: %d }", 
+            int[] pos = positions.getOrDefault(node.getName(), new int[] { 300, 200 });
+            sb.append(String.format("    { id: '%s', x: %d, y: %d }",
                     escapeJs(rawName), pos[0], pos[1]));
-            if (i < agentNodes.size() - 1) sb.append(",");
+            if (i < agentNodes.size() - 1)
+                sb.append(",");
             sb.append("\n");
         }
         sb.append("];\n\n");
@@ -169,7 +174,7 @@ public class HtmlGraphWriter {
                 String srcName = srcNode.getName().substring(1);
                 String destName = destNode.getName().substring(1);
                 boolean isAgent = srcNode.getName().startsWith("T");
-                edgeList.add(String.format("    { from: '%s', to: '%s', isAgent: %b }", 
+                edgeList.add(String.format("    { from: '%s', to: '%s', isAgent: %b }",
                         escapeJs(srcName), escapeJs(destName), isAgent));
             }
         }
@@ -233,28 +238,28 @@ public class HtmlGraphWriter {
     }
 
     private static String escapeJs(String input) {
-        if (input == null) return "";
+        if (input == null)
+            return "";
         return input.replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r");
     }
 
     private static List<String> getFallbackTemplate() {
         return Arrays.asList(
-            "<!DOCTYPE html>",
-            "<html lang=\"en\">",
-            "<head>",
-            "    <meta charset=\"UTF-8\">",
-            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
-            "    <title>Graph View</title>",
-            "    <link rel=\"stylesheet\" href=\"/app/graph.css\">",
-            "</head>",
-            "<body>",
-            "    <canvas id=\"graphCanvas\" width=\"600\" height=\"400\"></canvas>",
-            "    <script>",
-            "        // DATA_PLACEHOLDER",
-            "    </script>",
-            "    <script src=\"/app/graph.js\"></script>",
-            "</body>",
-            "</html>"
-        );
+                "<!DOCTYPE html>",
+                "<html lang=\"en\">",
+                "<head>",
+                "    <meta charset=\"UTF-8\">",
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
+                "    <title>Graph View</title>",
+                "    <link rel=\"stylesheet\" href=\"/app/graph.css\">",
+                "</head>",
+                "<body>",
+                "    <canvas id=\"graphCanvas\" width=\"600\" height=\"400\"></canvas>",
+                "    <script>",
+                "        // DATA_PLACEHOLDER",
+                "    </script>",
+                "    <script src=\"/app/graph.js\"></script>",
+                "</body>",
+                "</html>");
     }
 }

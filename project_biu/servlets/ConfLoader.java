@@ -10,12 +10,14 @@ import server.RequestParser.RequestInfo;
 import configs.GenericConfig;
 import configs.ConfigSingleton;
 import configs.Graph;
+import configs.GraphSingleton;
+import configs.SystemResetService;
 import graph.TopicManagerSingleton;
 import views.HtmlGraphWriter;
 import java.util.List;
 
 public class ConfLoader implements Servlet {
-   
+
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         if (ri == null) {
@@ -31,48 +33,51 @@ public class ConfLoader implements Servlet {
             }
 
             deployConfig(fileName);
-            
+
             // Generate computational graph from currently active topics
             Graph graph = new Graph();
             graph.createFromTopics();
-            
+
             if (graph.hasCycles()) {
                 // Rollback: remove all generated data because of the invalid file
-                ConfigSingleton.get().close();
-                TopicManagerSingleton.get().clear();
-                
+                cleanData();
                 // Delete the uploaded invalid configuration file
                 File uploadedFile = new File("assets/config_files/" + fileName);
                 if (uploadedFile.exists()) {
                     uploadedFile.delete();
                 }
-                
-                sendError(toClient, 400, "The computational graph could not be created because the configuration contains cycles.");
+
+                sendError(toClient, 400,
+                        "The computational graph could not be created because the configuration contains cycles.");
                 return;
             }
-            
+
+            // Set the new graph in the singleton
+            GraphSingleton.get().set(graph);
+
             List<String> htmlLines = HtmlGraphWriter.getGraphHTML(graph);
             String fullHtml = String.join("\n", htmlLines);
-            
+
             sendResponse(toClient, 200, "OK", fullHtml);
         } catch (Exception e) {
             sendError(toClient, 500, "Internal Server Error: " + e.getMessage());
         }
     }
 
+    private void cleanData() {
+        SystemResetService.cleanAll();
+    }
+
     private void deployConfig(String fileName) {
         // 1. Close and clean up the current configuration (stops old running agents)
-        ConfigSingleton.get().close();
+        cleanData();
 
-        // 2. Clear out the old topics from the TopicManager singleton
-        TopicManagerSingleton.get().clear();
-
-        // 3. Create the new config
+        // 2. Create the new config
         GenericConfig conf = new GenericConfig();
         conf.setConfFile("assets/config_files/" + fileName);
         conf.create();
 
-        // 4. Set the new config in the singleton
+        // 5. Set the new config in the singleton
         ConfigSingleton.get().set(conf);
     }
 
@@ -118,7 +123,8 @@ public class ConfLoader implements Servlet {
         }
     }
 
-    private void sendResponse(OutputStream toClient, int statusCode, String statusText, String body) throws IOException {
+    private void sendResponse(OutputStream toClient, int statusCode, String statusText, String body)
+            throws IOException {
         String response = "HTTP/1.1 " + statusCode + " " + statusText + "\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +
                 "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
@@ -129,7 +135,6 @@ public class ConfLoader implements Servlet {
         toClient.flush();
     }
 
-    
     private void sendError(OutputStream toClient, int statusCode, String message) throws IOException {
         String statusText = (statusCode == 400) ? "Bad Request" : "Internal Server Error";
         String body = "<html>" +
@@ -150,12 +155,10 @@ public class ConfLoader implements Servlet {
         sendResponse(toClient, statusCode, statusText, body);
     }
 
+    
     @Override
     public void close() throws IOException {
         System.out.println("Closing ConfLoader...");
-        // Stop all active agents
-        ConfigSingleton.get().close();
-        // Clear topics
-        TopicManagerSingleton.get().clear();
+        cleanData();
     }
 }
