@@ -12,7 +12,7 @@ import configs.ConfigSingleton;
 import configs.Graph;
 import configs.GraphSingleton;
 import configs.SystemResetService;
-import graph.TopicManagerSingleton;
+import configs.ConfigValidator;
 import views.HtmlGraphWriter;
 import java.util.List;
 
@@ -26,6 +26,12 @@ public class ConfLoader implements Servlet {
         }
 
         try {
+            ConfigValidator.ValidationResult valResult = ConfigValidator.validate(ri.getContent());
+            if (!valResult.isValid) {
+                sendError(toClient, 400, valResult.errorMessage);
+                return;
+            }
+
             String fileName = saveFileData(ri);
             if (fileName == null || fileName.isEmpty()) {
                 sendError(toClient, 400, "Bad Request: Missing or invalid file name/content");
@@ -37,20 +43,6 @@ public class ConfLoader implements Servlet {
             // Generate computational graph from currently active topics
             Graph graph = new Graph();
             graph.createFromTopics();
-
-            if (graph.hasCycles()) {
-                // Rollback: remove all generated data because of the invalid file
-                cleanData();
-                // Delete the uploaded invalid configuration file
-                File uploadedFile = new File("assets/config_files/" + fileName);
-                if (uploadedFile.exists()) {
-                    uploadedFile.delete();
-                }
-
-                sendError(toClient, 400,
-                        "The computational graph could not be created because the configuration contains cycles.");
-                return;
-            }
 
             // Set the new graph in the singleton
             GraphSingleton.get().set(graph);
