@@ -115,6 +115,11 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             String method = ri.getHttpCommand();
             String path = ri.getPath();
 
+            // Log incoming request asynchronously using the non-blocking RequestLogger
+            String clientIp = socket.getRemoteSocketAddress().toString();
+            ri.setClientAddress(clientIp);
+            RequestLogger.log(clientIp, method, ri.getUri());
+
             Servlet servlet = findBestMatchingServlet(method, path);
             if (servlet != null) {
                 servlet.handle(ri, os);
@@ -164,6 +169,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         }
 
         threadPool.shutdown();
+        RequestLogger.shutdown();
 
         // Close all servlets in all maps safely
 

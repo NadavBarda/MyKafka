@@ -36,6 +36,16 @@ public class RequestParser {
             this.content = content;
         }
 
+        private String clientAddress;
+
+        public void setClientAddress(String clientAddress) {
+            this.clientAddress = clientAddress;
+        }
+
+        public String getClientAddress() {
+            return clientAddress != null ? clientAddress : "unknown";
+        }
+
         // Getters for external use
         public String getHttpCommand() {
             return httpCommand;

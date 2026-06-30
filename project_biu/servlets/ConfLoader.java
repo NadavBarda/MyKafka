@@ -21,6 +21,7 @@ public class ConfLoader implements Servlet {
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         if (ri == null) {
+            server.RequestLogger.logError("unknown", "UNKNOWN", "unknown", "Bad Request: Null RequestInfo", null);
             sendError(toClient, 400, "Bad Request: Null RequestInfo");
             return;
         }
@@ -28,12 +29,14 @@ public class ConfLoader implements Servlet {
         try {
             ConfigValidator.ValidationResult valResult = ConfigValidator.validate(ri.getContent());
             if (!valResult.isValid) {
+                server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Validation failed: " + valResult.errorMessage, null);
                 sendError(toClient, 400, valResult.errorMessage);
                 return;
             }
 
             String fileName = saveFileData(ri);
             if (fileName == null || fileName.isEmpty()) {
+                server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Failed to save file data (missing or invalid file/content)", null);
                 sendError(toClient, 400, "Bad Request: Missing or invalid file name/content");
                 return;
             }
@@ -52,6 +55,7 @@ public class ConfLoader implements Servlet {
 
             sendResponse(toClient, 200, "OK", fullHtml);
         } catch (Exception e) {
+            server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Exception during config loading", e);
             sendError(toClient, 500, "Internal Server Error: " + e.getMessage());
         }
     }

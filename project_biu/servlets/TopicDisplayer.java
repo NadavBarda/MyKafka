@@ -31,6 +31,7 @@ public class TopicDisplayer implements Servlet {
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         if (ri == null) {
+            server.RequestLogger.logError("unknown", "UNKNOWN", "unknown", "Bad Request: Null RequestInfo", null);
             sendError(toClient, 400, "Bad Request: Null RequestInfo");
             return;
         }
@@ -39,10 +40,12 @@ public class TopicDisplayer implements Servlet {
         PublishStatus status = publishMessage(ri.getParams());
 
         // 2. Dispatch layout flow based on status.
-        // We use a switch expression instead of an EnumMap because it's simpler and more readable
-        // for lightweight request routing where we only need to map status to an optional alert message.
         String alertMessage = switch (status) {
-            case TOPIC_NOT_FOUND -> "The requested topic does not exist";
+            case TOPIC_NOT_FOUND -> {
+                String topicName = ri.getParams() != null ? ri.getParams().get("topic") : "unknown";
+                server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Topic not found during publish: " + topicName, null);
+                yield "The requested topic does not exist";
+            }
             default -> null; // SUCCESS, NO_PARAMS, and MISSING_PARAMS render the default dashboard
         };
 

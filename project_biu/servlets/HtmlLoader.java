@@ -34,12 +34,14 @@ public class HtmlLoader implements Servlet {
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         if (ri == null) {
+            server.RequestLogger.logError("unknown", "UNKNOWN", "unknown", "Bad Request - Null RequestInfo", null);
             sendError(toClient, 400, "Bad Request", "Null RequestInfo");
             return;
         }
 
         String[] segments = ri.getUriSegments();
         if (segments == null || segments.length == 0 || !segments[0].equals("app")) {
+            server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Not Found - Invalid request path", null);
             sendError(toClient, 404, "Not Found", "Invalid request path.");
             return;
         }
@@ -69,11 +71,13 @@ public class HtmlLoader implements Servlet {
         }
         String fileCanonical = targetFile.getCanonicalPath();
         if (!fileCanonical.startsWith(rootCanonical)) {
+            server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Forbidden - Directory traversal attempt: " + targetFile.getPath(), null);
             sendError(toClient, 403, "Forbidden", "Access denied.");
             return;
         }
 
         if (!targetFile.exists() || !targetFile.isFile()) {
+            server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "Not Found - File does not exist: " + pathBuilder.toString(), null);
             sendError(toClient, 404, "Not Found", "The requested file <strong>" 
                     + HtmlUtil.escapeHtml(pathBuilder.toString()) + "</strong> was not found.");
             return;

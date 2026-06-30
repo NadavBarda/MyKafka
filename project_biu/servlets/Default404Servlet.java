@@ -9,6 +9,9 @@ public class Default404Servlet implements Servlet {
 
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
+        if (ri != null) {
+            server.RequestLogger.logError(ri.getClientAddress(), ri.getHttpCommand(), ri.getUri(), "404 Not Found - No matching servlet", null);
+        }
         String body = "<html>" +
                 "<head><title>404 Not Found</title>" +
                 "<style>" +
