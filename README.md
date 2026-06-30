@@ -32,12 +32,12 @@ Ensure you have Java Development Kit (JDK) installed (version 17 or higher recom
 
    **Linux / macOS:**
    ```bash
-   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/server/ratelimiter/*.java project_biu/servlets/*.java project_biu/views/*.java
    ```
 
    **Windows:**
    ```powershell
-   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/server/ratelimiter/*.java project_biu/servlets/*.java project_biu/views/*.java
    ```
 
 ## Running the Application
