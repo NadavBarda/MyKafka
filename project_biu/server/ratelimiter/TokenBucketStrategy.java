@@ -18,7 +18,8 @@ public class TokenBucketStrategy implements RateLimitingStrategy {
     public boolean allowRequest(String clientId, String uri) {
         String key = clientId + ":" + uri;
         RateLimitConfig.LimitRule rule = config.getRule(uri);
-        Bucket bucket = buckets.computeIfAbsent(key, k -> new Bucket(rule.getCapacity(), rule.getRefillRatePerSecond()));
+        Bucket bucket = buckets.computeIfAbsent(key,
+                k -> new Bucket(rule.getCapacity(), rule.getRefillRatePerSecond()));
         return bucket.consume();
     }
 

@@ -35,7 +35,7 @@ public class RateLimiter {
      * Checks if the request from the given client for the specified URI is allowed.
      *
      * @param clientId the identifier of the client making the request
-     * @param uri the URI requested
+     * @param uri      the URI requested
      * @return true if the request is allowed; false otherwise
      */
     public boolean allowRequest(String clientId, String uri) {

@@ -3,6 +3,9 @@ package server;
 import servlets.Servlet;
 import servlets.Default404Servlet;
 import server.RequestParser.RequestInfo;
+import server.ratelimiter.RateLimitConfig;
+import server.ratelimiter.RateLimiter;
+import server.ratelimiter.TokenBucketStrategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,9 +19,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import server.ratelimiter.RateLimiter;
-import server.ratelimiter.RateLimitConfig;
-import server.ratelimiter.TokenBucketStrategy;
 
 public class MyHTTPServer extends Thread implements HTTPServer {
 
@@ -52,8 +52,10 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     }
 
     private void initRateLimiter() {
-        RateLimitConfig rateLimitConfig = new RateLimitConfig(10, 1);
-        rateLimitConfig.addRule("/api/graph", 2, 2.0);
+
+        RateLimitConfig rateLimitConfig = new RateLimitConfig(5, 1);
+        rateLimitConfig.addRule("/api/graph", 2, 1.2);
+        rateLimitConfig.addRule("/upload", 2, 0.4);
         this.rateLimiter = new RateLimiter(new TokenBucketStrategy(rateLimitConfig));
     }
 
