@@ -57,6 +57,12 @@ public class MyHTTPServer extends Thread implements RateLimitedServer {
         this.rateLimiter = rateLimiter;
     }
 
+    @Override
+    public boolean allow(String clientId, String uri) {
+        RateLimiter currentLimiter = this.rateLimiter;
+        return currentLimiter == null || currentLimiter.allowRequest(clientId, uri);
+    }
+
     private Map<String, Servlet> getMapForMethod(String httpCommand) {
         if (httpCommand == null) {
             return null;
@@ -131,8 +137,7 @@ public class MyHTTPServer extends Thread implements RateLimitedServer {
 
             // Perform rate limiting check
             String clientIp = socket.getInetAddress().getHostAddress();
-            RateLimiter currentLimiter = this.rateLimiter;
-            if (currentLimiter != null && !currentLimiter.allowRequest(clientIp, path)) {
+            if (!allow(clientIp, path)) {
                 send429Response(os);
                 return;
             }
