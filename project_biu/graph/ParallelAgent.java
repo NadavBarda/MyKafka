@@ -33,22 +33,24 @@ public class ParallelAgent implements Agent {
         this.queue = new ArrayBlockingQueue<>(capacity);
         this.stop = false;
 
-        this.thread = new Thread(() -> {
-            while (!stop && !Thread.currentThread().isInterrupted()) {
-                try {
-                    Message m = queue.take();
-                    if (m instanceof TopicMessage) {
-                        TopicMessage tm = (TopicMessage) m;
-                        this.agent.callback(tm.topic, tm.message);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    System.err.println("Exception in agent callback: " + e.getMessage());
-                }
-            }
-        }, "ParallelAgent-" + agent.getName());
+        this.thread = new Thread(this::run, "ParallelAgent-" + agent.getName());
         this.thread.start();
+    }
+
+    private void run() {
+        while (!stop && !Thread.currentThread().isInterrupted()) {
+            try {
+                Message m = queue.take();
+                if (m instanceof TopicMessage) {
+                    TopicMessage tm = (TopicMessage) m;
+                    this.agent.callback(tm.topic, tm.message);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                System.err.println("Exception in agent callback: " + e.getMessage());
+            }
+        }
     }
 
     @Override

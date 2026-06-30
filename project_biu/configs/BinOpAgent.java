@@ -25,18 +25,19 @@ public class BinOpAgent implements Agent {
 
         TopicManagerSingleton.TopicManager tm = TopicManagerSingleton.get();
 
-        this.topic1 = inputTopic1 != null ? tm.getTopic(inputTopic1) : null;
-        this.topic2 = inputTopic2 != null ? tm.getTopic(inputTopic2) : null;
-        this.topicOut = outputTopic != null ? tm.getTopic(outputTopic) : null;
+        this.topic1 = tm.getTopic(inputTopic1);
+        if (this.topic1 != null) {
+            this.topic1.subscribe(this);
+        }
 
-        if (topic1 != null) {
-            topic1.subscribe(this);
+        this.topic2 = tm.getTopic(inputTopic2);
+        if (this.topic2 != null) {
+            this.topic2.subscribe(this);
         }
-        if (topic2 != null) {
-            topic2.subscribe(this);
-        }
-        if (topicOut != null) {
-            topicOut.addPublisher(this);
+
+        this.topicOut = tm.getTopic(outputTopic);
+        if (this.topicOut != null) {
+            this.topicOut.addPublisher(this);
         }
     }
 
