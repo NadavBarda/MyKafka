@@ -29,15 +29,30 @@ Ensure you have Java Development Kit (JDK) installed (version 17 or higher recom
    cd MyKafka
    ```
 2. Compile the Java files:
+
+   **Linux / macOS:**
    ```bash
-   javac -d bin project_biu/*.java
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
+   ```
+
+   **Windows:**
+   ```powershell
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
    ```
 
 ## Running the Application
 To launch the backend server:
+
+**Linux / macOS:**
 ```bash
-java -cp bin Main
+java -cp "bin:lib/gson-2.10.1.jar" Main
 ```
+
+**Windows (Command Prompt / PowerShell):**
+```powershell
+java -cp "bin;lib/gson-2.10.1.jar" Main
+```
+
 The server will start listening on `http://localhost:8080/`. You can connect via any browser by navigating to `http://localhost:8080/app/index.html`.
 
 ## Demo Video
