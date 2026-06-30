@@ -104,7 +104,8 @@ function draw() {
         ctx.fillStyle = '#333';
         ctx.font = '10px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(agent.id, pos.x, pos.y + 3);
+        const displayName = agent.id.split('_')[0];
+        ctx.fillText(displayName, pos.x, pos.y + 3);
     });
 }
 

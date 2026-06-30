@@ -3,9 +3,15 @@ package servlets;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.google.gson.Gson;
 
 import graph.Agent;
 import graph.Message;
@@ -19,72 +25,55 @@ import server.RequestParser.RequestInfo;
  */
 public class GraphDataServlet implements Servlet {
 
+    private final Gson gson = new Gson();
+
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
         Collection<Topic> topics = TopicManagerSingleton.get().getTopics();
         Set<String> uniqueAgentNames = new HashSet<>();
         
-        StringBuilder json = new StringBuilder();
-        json.append("{");
+        List<Map<String, String>> topicsData = new ArrayList<>();
+        List<Map<String, String>> edgesData = new ArrayList<>();
         
-        // Serialize Topics
-        json.append("\"topics\": [");
-        boolean firstTopic = true;
         for (Topic t : topics) {
-            if (!firstTopic) json.append(",");
-            firstTopic = false;
-            
             Message msg = t.getLastMessage();
-            String val = msg != null ? msg.asText : "null";
+            String val = msg != null ? msg.asText : "";
             
-            json.append("{")
-                .append("\"id\": \"").append(escapeJson(t.getName())).append("\",")
-                .append("\"value\": \"").append(escapeJson(val)).append("\"")
-                .append("}");
-                
-            for (Agent sub : t.getSubs()) uniqueAgentNames.add(sub.getName());
-            for (Agent pub : t.getPubs()) uniqueAgentNames.add(pub.getName());
-        }
-        json.append("],");
-        
-        // Serialize Agents
-        json.append("\"agents\": [");
-        boolean firstAgent = true;
-        for (String agentName : uniqueAgentNames) {
-            if (!firstAgent) json.append(",");
-            firstAgent = false;
+            Map<String, String> topicMap = new HashMap<>();
+            topicMap.put("id", t.getName());
+            topicMap.put("value", val);
+            topicsData.add(topicMap);
             
-            json.append("{")
-                .append("\"id\": \"").append(escapeJson(agentName)).append("\"")
-                .append("}");
-        }
-        json.append("],");
-        
-        // Serialize Edges
-        json.append("\"edges\": [");
-        boolean firstEdge = true;
-        for (Topic t : topics) {
             for (Agent sub : t.getSubs()) {
-                if (!firstEdge) json.append(",");
-                firstEdge = false;
-                json.append("{")
-                    .append("\"from\": \"").append(escapeJson(t.getName())).append("\",")
-                    .append("\"to\": \"").append(escapeJson(sub.getName())).append("\"")
-                    .append("}");
+                uniqueAgentNames.add(sub.getName());
+                Map<String, String> edgeMap = new HashMap<>();
+                edgeMap.put("from", t.getName());
+                edgeMap.put("to", sub.getName());
+                edgesData.add(edgeMap);
             }
+            
             for (Agent pub : t.getPubs()) {
-                if (!firstEdge) json.append(",");
-                firstEdge = false;
-                json.append("{")
-                    .append("\"from\": \"").append(escapeJson(pub.getName())).append("\",")
-                    .append("\"to\": \"").append(escapeJson(t.getName())).append("\"")
-                    .append("}");
+                uniqueAgentNames.add(pub.getName());
+                Map<String, String> edgeMap = new HashMap<>();
+                edgeMap.put("from", pub.getName());
+                edgeMap.put("to", t.getName());
+                edgesData.add(edgeMap);
             }
         }
-        json.append("]");
-        json.append("}");
         
-        String body = json.toString();
+        List<Map<String, String>> agentsData = new ArrayList<>();
+        for (String agentName : uniqueAgentNames) {
+            Map<String, String> agentMap = new HashMap<>();
+            agentMap.put("id", agentName);
+            agentsData.add(agentMap);
+        }
+        
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("topics", topicsData);
+        responseData.put("agents", agentsData);
+        responseData.put("edges", edgesData);
+        
+        String body = gson.toJson(responseData);
         String response = "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: application/json; charset=UTF-8\r\n" +
                 "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
@@ -98,10 +87,5 @@ public class GraphDataServlet implements Servlet {
     @Override
     public void close() throws IOException {
         // No resources to close
-    }
-
-    private String escapeJson(String str) {
-        if (str == null) return "";
-        return str.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
