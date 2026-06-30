@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MyHTTPServer extends Thread implements HTTPServer {
+public class MyHTTPServer extends Thread implements RateLimitedServer {
 
     private final int port;
 
@@ -47,16 +47,6 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         methodMaps.put("GET", getServlets);
         methodMaps.put("POST", postServlets);
         methodMaps.put("DELETE", deleteServlets);
-
-        initRateLimiter();
-    }
-
-    private void initRateLimiter() {
-
-        RateLimitConfig rateLimitConfig = new RateLimitConfig(5, 1);
-        rateLimitConfig.addRule("/api/graph", 2, 1.2);
-        rateLimitConfig.addRule("/upload", 2, 0.4);
-        this.rateLimiter = new RateLimiter(new TokenBucketStrategy(rateLimitConfig));
     }
 
     public RateLimiter getRateLimiter() {
