@@ -12,15 +12,10 @@ import graph.Topic;
 import graph.Message;
 import server.RequestParser.RequestInfo;
 
-/**
- * TopicDisplayer displays a dashboard table of all topics and their last message values.
- * It handles GET requests to inspect topic states and allows publishing new messages.
- */
+// Servlet to display all topics and their last message.
 public class TopicDisplayer implements Servlet {
 
-    /**
-     * Enumerates the possible outcomes when attempting to publish a message.
-     */
+    // Outcomes of publishing a message.
     public enum PublishStatus {
         SUCCESS,          // Message published successfully
         TOPIC_NOT_FOUND,  // Target topic name doesn't exist in the active graph
@@ -35,25 +30,19 @@ public class TopicDisplayer implements Servlet {
             return;
         }
 
-        // 1. Process the message publishing step
         PublishStatus status = publishMessage(ri.getParams());
 
-        // 2. Dispatch layout flow based on status.
-        // We use a switch expression instead of an EnumMap because it's simpler and more readable
-        // for lightweight request routing where we only need to map status to an optional alert message.
+        // Map status to alert message if needed
         String alertMessage = switch (status) {
             case TOPIC_NOT_FOUND -> "The requested topic does not exist";
             default -> null; // SUCCESS, NO_PARAMS, and MISSING_PARAMS render the default dashboard
         };
 
-        // 3. Serve the HTML response containing the topics dashboard
+        // Return HTML dashboard
         sendSuccess(toClient, generateHtml(alertMessage));
     }
 
-    /**
-     * Attempts to extract 'topic' and 'message' parameters and publish a new message.
-     * Checks if the topic exists prior to publishing to avoid creating orphaned topics.
-     */
+    // Publishes message to topic if it exists.
     private PublishStatus publishMessage(Map<String, String> params) {
         if (params == null) {
             return PublishStatus.NO_PARAMS;
@@ -65,8 +54,7 @@ public class TopicDisplayer implements Servlet {
         if (topicName != null && !topicName.trim().isEmpty() && messageVal != null) {
             TopicManager topicManager = TopicManagerSingleton.get();
 
-            // We perform an O(1) containsKey check using topicExists() to prevent users from
-            // dynamically instantiating non-existent topics that are not in the configuration graph.
+            // Ensure topic exists to avoid creating non-configured topics.
             if (topicManager.topicExists(topicName)) {
                 topicManager.getTopic(topicName).publish(new Message(messageVal));
                 return PublishStatus.SUCCESS;

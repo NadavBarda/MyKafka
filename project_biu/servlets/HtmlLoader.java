@@ -7,22 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import server.RequestParser.RequestInfo;
 
-/**
- * HtmlLoader is a servlet that serves static resources (like HTML, CSS, and JS files)
- * from a directory configured at runtime.
- */
+// Servlet to serve static files from a configured directory.
 public class HtmlLoader implements Servlet {
 
     private final File directory;
 
-    /**
-     * Constructs the HtmlLoader pointing to the specified directory.
-     *
-     * @param directoryPath the root directory path where static files are located.
-     */
-    public class HtmlLoaderConstructor {
-        // Just for documentation
-    }
+
 
     public HtmlLoader(String directoryPath) {
         if (directoryPath == null || directoryPath.trim().isEmpty()) {
@@ -61,8 +51,7 @@ public class HtmlLoader implements Servlet {
 
         File targetFile = new File(directory, pathBuilder.toString());
 
-        // Security check: Prevent directory traversal attacks.
-        // Ensure root canonical path ends with a separator to avoid partial name match vulnerabilities.
+        // Prevent directory traversal attacks
         String rootCanonical = directory.getCanonicalPath();
         if (!rootCanonical.endsWith(File.separator)) {
             rootCanonical += File.separator;

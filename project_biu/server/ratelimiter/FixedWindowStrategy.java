@@ -2,10 +2,7 @@ package server.ratelimiter;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Fixed Window implementation of RateLimitingStrategy.
- * Limits requests using a fixed-time window per (clientId, uri) pair.
- */
+// Fixed window rate limiting strategy.
 public class FixedWindowStrategy implements RateLimitingStrategy {
     private final long windowSizeMillis;
     private final int maxRequests;

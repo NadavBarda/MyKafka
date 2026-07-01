@@ -3,10 +3,7 @@ package server.ratelimiter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Configuration class that maps URIs to their respective rate limiting rules.
- * Follows SRP by handling configuration lookup separate from execution logic.
- */
+// Maps URIs to their rate limiting rules.
 public class RateLimitConfig {
     public static class LimitRule {
         private final long capacity;
@@ -29,33 +26,17 @@ public class RateLimitConfig {
     private final LimitRule defaultRule;
     private final Map<String, LimitRule> uriRules = new ConcurrentHashMap<>();
 
-    /**
-     * Constructs the config with a default rate limit rule.
-     *
-     * @param defaultCapacity the default token capacity
-     * @param defaultRefillRate the default refill rate per second
-     */
+    // Set default capacity and refill rate.
     public RateLimitConfig(long defaultCapacity, double defaultRefillRate) {
         this.defaultRule = new LimitRule(defaultCapacity, defaultRefillRate);
     }
 
-    /**
-     * Adds or overrides a rate limiting rule for a specific URI.
-     *
-     * @param uri the URI pattern to match
-     * @param capacity the token capacity for this URI
-     * @param refillRate the refill rate per second for this URI
-     */
+    // Adds or overrides a rule for a specific URI.
     public void addRule(String uri, long capacity, double refillRate) {
         uriRules.put(uri, new LimitRule(capacity, refillRate));
     }
 
-    /**
-     * Retrieves the rate limiting rule for a given URI, falling back to the default rule.
-     *
-     * @param uri the requested URI
-     * @return the applicable LimitRule
-     */
+    // Gets the rule for a URI, or defaultRule if none exists.
     public LimitRule getRule(String uri) {
         return uriRules.getOrDefault(uri, defaultRule);
     }

@@ -8,14 +8,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * Validator utility to inspect configuration data format and detect dependency cycles
- * directly from parsed topic flows without instantiating computational graphs.
+ * Validates configuration files and detects dependency cycles.
  */
 public class ConfigValidator {
 
-    /**
-     * Data class containing the result of a validation check.
-     */
+    // Result of a validation check.
     public static class ValidationResult {
         public final boolean isValid;
         public final String errorMessage;
@@ -27,11 +24,7 @@ public class ConfigValidator {
     }
 
     /**
-     * Validates configuration data for proper format (multiple of 3 lines) and
-     * performs cycle detection on the resulting topic dependencies.
-     *
-     * @param data raw byte array representing the config file
-     * @return a ValidationResult indicating whether the configuration is valid
+     * Validates configuration format and checks for cycles.
      */
     public static ValidationResult validate(byte[] data) {
         if (data == null || data.length == 0) {
@@ -55,12 +48,12 @@ public class ConfigValidator {
             return new ValidationResult(false, "Configuration has no content");
         }
 
-        // Logic of valid conffile is in GenericConfig (line count must be a multiple of 3)
+        // Must be a multiple of 3 lines (matching GenericConfig validation)
         if (lines.size() % 3 != 0) {
             return new ValidationResult(false, "Invalid configuration file format: line count is not a multiple of 3");
         }
 
-        // Build direct topic-to-topic dependency graph (subTopic -> pubTopic)
+        // Build dependency graph (subTopic -> pubTopic)
         Map<String, List<String>> adjList = new HashMap<>();
 
         for (int i = 0; i < lines.size(); i += 3) {
@@ -86,7 +79,7 @@ public class ConfigValidator {
             }
         }
 
-        // Cycle detection using DFS with recursion stack tracking
+        // DFS cycle detection
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
 

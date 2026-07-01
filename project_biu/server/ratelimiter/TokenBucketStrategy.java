@@ -2,10 +2,7 @@ package server.ratelimiter;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Token Bucket implementation of RateLimitingStrategy.
- * Limits requests using a token bucket algorithm per (clientId, uri) pair.
- */
+// Token bucket rate limiting strategy.
 public class TokenBucketStrategy implements RateLimitingStrategy {
     private final RateLimitConfig config;
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();

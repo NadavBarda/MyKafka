@@ -8,10 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Parser for handling HTTP requests. Supports extracting request lines, URI parts,
- * query parameters, headers, and parsing multipart/form-data content for file uploads.
- */
+// Parses HTTP requests, handling query parameters, headers, and multipart/form-data.
 public class MultipartRequestParser extends RequestParser {
 
     private static final String BOUNDARY = "boundary=";
@@ -20,10 +17,7 @@ public class MultipartRequestParser extends RequestParser {
     private static final String FILENAME = "filename=\"";
     private static final String FILE_PARAM = "file";
 
-    /**
-     * Parses the incoming HTTP request. This is the entry point that handles
-     * the request line, path URI, query parameters, headers, and the body.
-     */
+    // Parses the incoming HTTP request.
     public static RequestInfo parseRequest(BufferedReader reader) throws IOException {
         String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
@@ -48,10 +42,7 @@ public class MultipartRequestParser extends RequestParser {
         return new RequestInfo(httpCommand, uri, uriParts, params, headers, content);
     }
 
-    /**
-     * Reads all HTTP headers from the reader, populating the provided headers map,
-     * and extracts the Content-Length if present.
-     */
+    // Reads HTTP headers and extracts Content-Length if present.
     private static int parseHeaders(BufferedReader reader, Map<String, String> headers) throws IOException {
         int contentLength = 0;
         String headerLine;
@@ -71,10 +62,7 @@ public class MultipartRequestParser extends RequestParser {
         return contentLength;
     }
 
-    /**
-     * Reads and parses the HTTP request body based on the Content-Type.
-     * Decodes multipart/form-data content if relevant.
-     */
+    // Reads and parses request body, handling multipart/form-data content.
     private static byte[] parseBody(BufferedReader reader, int contentLength, Map<String, String> headers,
             Map<String, String> params) throws IOException {
 
@@ -88,10 +76,7 @@ public class MultipartRequestParser extends RequestParser {
         return content;
     }
 
-    /**
-     * Parses the URI path into individual segments and populates the params map
-     * with query parameters extracted from the URI.
-     */
+    // Parses URI path segments and query parameters.
     private static String[] parseUriPartsAndQueryParams(String uri, Map<String, String> params) {
         String path = uri;
         if (uri.contains("?")) {
@@ -111,9 +96,7 @@ public class MultipartRequestParser extends RequestParser {
         return cleaned.toArray(new String[0]);
     }
 
-    /**
-     * Parses a url-encoded query string and puts the keys and values in params.
-     */
+    // Parses a url-encoded query string into params map.
     private static void parseUrlEncodedParams(String query, Map<String, String> params) {
         if (query == null || query.isEmpty())
             return;
@@ -128,9 +111,7 @@ public class MultipartRequestParser extends RequestParser {
         }
     }
 
-    /**
-     * Reads exactly the specified number of bytes from the reader stream.
-     */
+    // Reads exact number of bytes from the reader.
     private static byte[] readExactBytes(BufferedReader reader, int length) throws IOException {
         if (length <= 0)
             return null;
@@ -153,10 +134,7 @@ public class MultipartRequestParser extends RequestParser {
         return bytes;
     }
 
-    /**
-     * Iterates through all parts of a multipart/form-data request body, extracting
-     * form parameters and identifying any file upload payload.
-     */
+    // Parses a multipart request body to extract parameters and file content.
     private static byte[] extractMultipartParams(byte[] content, String contentType, Map<String, String> params) {
         if (content == null) {
             return null;
@@ -216,9 +194,7 @@ public class MultipartRequestParser extends RequestParser {
         return trimmed.isEmpty() || trimmed.equals("--") || trimmed.equals("--\r\n");
     }
 
-    /**
-     * Parses headers of a single multipart boundary block to extract metadata like name and filename.
-     */
+    // Parses headers of a single multipart part.
     private static MultipartHeaderInfo parsePartHeaders(String headersPart) {
         String name = null;
         String filename = null;
@@ -244,10 +220,7 @@ public class MultipartRequestParser extends RequestParser {
         return null;
     }
 
-    /**
-     * Extracts the payload of a multipart section, mapping simple form values into the
-     * parameters map, or returning the file data as a byte array if it represents an uploaded file.
-     */
+    // Extracts the body of a single multipart part.
     private static byte[] extractPartBody(String part, int headerEnd, int headerLen, MultipartHeaderInfo info,
             Map<String, String> params) {
         int bodyStart = headerEnd + headerLen;
