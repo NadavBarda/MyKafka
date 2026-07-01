@@ -1,5 +1,6 @@
 *.class
 bin/
-assets/
+assets/*
+!assets/config_files/
 .vscode/
 *.pdf
