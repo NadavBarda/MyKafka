@@ -17,10 +17,10 @@ public class TopicDisplayer implements Servlet {
 
     // Outcomes of publishing a message.
     public enum PublishStatus {
-        SUCCESS,          // Message published successfully
-        TOPIC_NOT_FOUND,  // Target topic name doesn't exist in the active graph
-        MISSING_PARAMS,   // Request query parameters are missing or incomplete
-        NO_PARAMS         // Default initial page request with no query parameters
+        SUCCESS,
+        TOPIC_NOT_FOUND,
+        MISSING_PARAMS,
+        NO_PARAMS
     }
 
     @Override
