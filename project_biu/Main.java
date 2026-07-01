@@ -4,6 +4,10 @@ import servlets.TopicDisplayer;
 import servlets.HtmlLoader;
 import servlets.GraphDataServlet;
 import server.HTTPServer;
+import server.RateLimitedServer;
+import server.ratelimiter.RateLimitConfig;
+import server.ratelimiter.RateLimiter;
+import server.ratelimiter.TokenBucketStrategy;
 import configs.SystemResetService;
 
 public class Main {
@@ -22,7 +26,13 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        HTTPServer server = new MyHTTPServer(8080, 5);
+        RateLimitedServer server = new MyHTTPServer(8080, 5);
+
+        RateLimitConfig rateLimitConfig = new RateLimitConfig(5, 1.0);
+        rateLimitConfig.addRule("/api/graph", 2, 1.2);
+        rateLimitConfig.addRule("/upload", 2, 0.4);
+        RateLimiter rateLimiter = new RateLimiter(new TokenBucketStrategy(rateLimitConfig));
+        server.setRateLimiter(rateLimiter);
 
         initailServelt(server);
 

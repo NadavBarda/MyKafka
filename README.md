@@ -8,6 +8,13 @@ The system is built upon core software design patterns to ensure scalability, ma
 *   **Observer Pattern**: Implemented through the pub/sub architecture. **Agents** act as subscribers (observers) that watch **Topics** (observables) and compute new data dynamically when messages are published.
 *   **Singleton Pattern**: Used for the central `TopicManager` to guarantee a single, global registry of all topics and agents across the server.
 *   **SOLID Principles**: Emphasized throughout the backend structure, separating the Controller (Servlets handling HTTP requests) from the Model (Computation Graph logic) and the View (HTML/JS output generation).
+*   **Strategy Pattern & SOLID Rate Limiter**: 
+    The rate limiter system is implemented with clean separation of concerns and pattern compliance:
+    *   **Strategy Pattern**: Rate limiting algorithms (e.g., `TokenBucketStrategy`, `FixedWindowStrategy`) implement the common `RateLimitingStrategy` interface, allowing algorithms to be swapped dynamically at runtime using the `RateLimiter` context class.
+    *   **Interface Segregation Principle (ISP)**: Rate limiter setter/getter operations are isolated to the `RateLimitedServer` interface, ensuring that base HTTP servers are not forced to implement rate limiting behavior unless required.
+    *   **Single Responsibility Principle (SRP)**: Decoupled rate limit configuration mapping from execution. The `RateLimitConfig` class solely manages configuration storage and fallback lookups per URI (like tighter polling rules for `/api/graph`), while the strategies focus purely on algorithm logic.
+    *   **Liskov Substitution Principle (LSP)**: `RateLimitedServer` extends `HTTPServer` so that a rate-limited server can be used interchangeably wherever a standard HTTP server is expected.
+    *   **Dependency Inversion Principle (DIP)**: High-level configuration of limits is defined in `Main.java` and injected via `setRateLimiter()`, preventing the server from being tightly coupled to specific rate limiting thresholds.
 
 ## Background
 The system manages a computation graph consisting of rectangular **Topics** (holding data values) and circular **Agents** (performing mathematical or logical operations on topics). Users can upload custom configurations to dynamically construct graphs and publish/subscribe to topics to view output results mapped in real-time.
@@ -32,12 +39,12 @@ Ensure you have Java Development Kit (JDK) installed (version 17 or higher recom
 
    **Linux / macOS:**
    ```bash
-   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/server/ratelimiter/*.java project_biu/servlets/*.java project_biu/views/*.java
    ```
 
    **Windows:**
    ```powershell
-   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/servlets/*.java project_biu/views/*.java
+   javac -d bin -cp "lib/gson-2.10.1.jar" project_biu/Main.java project_biu/configs/*.java project_biu/graph/*.java project_biu/server/*.java project_biu/server/ratelimiter/*.java project_biu/servlets/*.java project_biu/views/*.java
    ```
 
 ## Running the Application

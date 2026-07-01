@@ -3,6 +3,8 @@ package server;
 import servlets.Servlet;
 import servlets.Default404Servlet;
 import server.RequestParser.RequestInfo;
+import server.ratelimiter.RateLimiter;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,12 +13,13 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MyHTTPServer extends Thread implements HTTPServer {
+public class MyHTTPServer extends Thread implements RateLimitedServer {
 
     private final int port;
 
@@ -33,6 +36,8 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private final Map<String, Map<String, Servlet>> methodMaps = new ConcurrentHashMap<>();
     private final Servlet default404Servlet = new Default404Servlet();
 
+    private volatile RateLimiter rateLimiter;
+
     public MyHTTPServer(int port, int numThreads) {
         this.port = port;
         this.threadPool = Executors.newFixedThreadPool(numThreads);
@@ -41,6 +46,20 @@ public class MyHTTPServer extends Thread implements HTTPServer {
         methodMaps.put("GET", getServlets);
         methodMaps.put("POST", postServlets);
         methodMaps.put("DELETE", deleteServlets);
+    }
+
+    public RateLimiter getRateLimiter() {
+        return rateLimiter;
+    }
+
+    public void setRateLimiter(RateLimiter rateLimiter) {
+        this.rateLimiter = rateLimiter;
+    }
+
+    @Override
+    public boolean allow(String clientId, String uri) {
+        RateLimiter currentLimiter = this.rateLimiter;
+        return currentLimiter == null || currentLimiter.allowRequest(clientId, uri);
     }
 
     private Map<String, Servlet> getMapForMethod(String httpCommand) {
@@ -115,6 +134,13 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             String method = ri.getHttpCommand();
             String path = ri.getPath();
 
+            // Perform rate limiting check
+            String clientIp = socket.getInetAddress().getHostAddress();
+            if (!allow(clientIp, path)) {
+                send429Response(os);
+                return;
+            }
+
             Servlet servlet = findBestMatchingServlet(method, path);
             if (servlet != null) {
                 servlet.handle(ri, os);
@@ -124,6 +150,32 @@ public class MyHTTPServer extends Thread implements HTTPServer {
 
         } catch (Exception e) {
         }
+    }
+
+    private void send429Response(OutputStream toClient) throws IOException {
+        String body = "<html>" +
+                "<head><title>429 Too Many Requests</title>" +
+                "<style>" +
+                "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }"
+                +
+                "h1 { color: #f87171; font-size: 3em; margin-bottom: 10px; }" +
+                "p { color: #94a3b8; font-size: 1.2em; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<h1>429 Too Many Requests</h1>" +
+                "<p>You are making too many requests. Please slow down.</p>" +
+                "</body>" +
+                "</html>";
+
+        String response = "HTTP/1.1 429 Too Many Requests\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
+                "Connection: close\r\n\r\n" +
+                body;
+
+        toClient.write(response.getBytes(StandardCharsets.UTF_8));
+        toClient.flush();
     }
 
     private Servlet findBestMatchingServlet(String httpCommand, String path) {
