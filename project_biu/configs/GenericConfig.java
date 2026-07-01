@@ -86,6 +86,10 @@ public class GenericConfig implements Config {
 
     private void createSingleAgent(String className, String[] subs, String[] pubs) {
         try {
+            int configsIndex = className.indexOf("configs.");
+            if (configsIndex != -1) {
+                className = className.substring(configsIndex);
+            }
             Class<?> clazz = Class.forName(className);
             Constructor<?> constructor = clazz.getConstructor(String[].class, String[].class);
             Agent agent = (Agent) constructor.newInstance((Object) subs, (Object) pubs);
