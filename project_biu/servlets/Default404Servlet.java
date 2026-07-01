@@ -13,6 +13,8 @@ public class Default404Servlet implements Servlet {
         java.io.File htmlFile = new java.io.File("html_files/404.html");
         if (htmlFile.exists() && htmlFile.isFile()) {
             body = new String(java.nio.file.Files.readAllBytes(htmlFile.toPath()), StandardCharsets.UTF_8);
+        } else {
+            body = FallbackHtml.get404Html();
         }
 
         String response = "HTTP/1.1 404 Not Found\r\n" +

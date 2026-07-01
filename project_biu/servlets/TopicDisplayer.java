@@ -76,6 +76,10 @@ public class TopicDisplayer implements Servlet {
             }
         }
 
+        if (template.isEmpty()) {
+            template = FallbackHtml.getTopicsHtml();
+        }
+
         String alertHtml = "";
         if (alertMessage != null) {
             alertHtml = "<div class=\"alert\">⚠️ " + HtmlUtil.escapeHtml(alertMessage) + "</div>";

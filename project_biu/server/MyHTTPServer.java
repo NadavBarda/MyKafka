@@ -157,6 +157,8 @@ public class MyHTTPServer extends Thread implements RateLimitedServer {
         java.io.File htmlFile = new java.io.File("html_files/429.html");
         if (htmlFile.exists() && htmlFile.isFile()) {
             body = new String(java.nio.file.Files.readAllBytes(htmlFile.toPath()), StandardCharsets.UTF_8);
+        } else {
+            body = servlets.FallbackHtml.get429Html();
         }
 
         String response = "HTTP/1.1 429 Too Many Requests\r\n" +
