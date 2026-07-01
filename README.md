@@ -87,3 +87,67 @@ The submission requires a demo video meeting the following criteria:
     *   Highlighting advanced features (Rate Limiting strategies, custom Ticket Booking flow, dynamic graph rendering).
 *   **Slide 4 (Summary)**: Wrap-up of key concepts learned during the course and takeaways.
 
+---
+
+## Javadoc / תיעוד למפתחים
+We have generated full Javadoc documentation for the custom HTTP Server API. It can be found in the `javadoc/` directory.
+
+### How to open Javadoc:
+Open `javadoc/index.html` in any browser to inspect the package structure, classes, and method signatures.
+
+### HTTP Server Code Reuse Example / דוגמה לשימוש חוזר בשרת עבור מפתחים
+The HTTP Server has been designed to be fully decoupled and reusable as a standalone library. Below is a code example showing how another developer can create and run a rate-limited HTTP server with a custom servlet:
+
+```java
+import server.MyHTTPServer;
+import server.RateLimitedServer;
+import server.ratelimiter.RateLimitConfig;
+import server.ratelimiter.RateLimiter;
+import server.ratelimiter.TokenBucketStrategy;
+import server.RequestParser.RequestInfo;
+import servlets.Servlet;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+
+public class DeveloperApp {
+
+    public static void main(String[] args) {
+        // 1. Create a RateLimitedServer instance listening on port 9090 with a thread pool of 10 threads
+        RateLimitedServer server = new MyHTTPServer(9090, 10);
+
+        // 2. Configure rate limiter rules (e.g., maximum 5 requests, refilling 1 token per second)
+        RateLimitConfig rateLimitConfig = new RateLimitConfig(5, 1.0);
+        rateLimitConfig.addRule("/greet", 2, 0.5); // specific limit for /greet
+        
+        RateLimiter rateLimiter = new RateLimiter(new TokenBucketStrategy(rateLimitConfig));
+        server.setRateLimiter(rateLimiter);
+
+        // 3. Register a custom servlet
+        server.addServlet("GET", "/greet", new Servlet() {
+            @Override
+            public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
+                String body = "<h1>Hello from MyHTTPServer!</h1>";
+                String response = "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: text/html; charset=UTF-8\r\n" +
+                        "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
+                        "Connection: close\r\n\r\n" +
+                        body;
+                toClient.write(response.getBytes(StandardCharsets.UTF_8));
+                toClient.flush();
+            }
+
+            @Override
+            public void close() throws IOException {
+                // Cleanup resources if needed
+            }
+        });
+
+        // 4. Start the server
+        System.out.println("Starting server on port 9090...");
+        server.start();
+    }
+}
+```
+
+
