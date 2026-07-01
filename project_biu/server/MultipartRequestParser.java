@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+// We could also use here adapter pattern
+
 // Parses HTTP requests, handling query parameters, headers, and multipart/form-data.
 public class MultipartRequestParser extends RequestParser {
 

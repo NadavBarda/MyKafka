@@ -9,19 +9,11 @@ public class Default404Servlet implements Servlet {
 
     @Override
     public void handle(RequestInfo ri, OutputStream toClient) throws IOException {
-        String body = "<html>" +
-                "<head><title>404 Not Found</title>" +
-                "<style>" +
-                "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }" +
-                "h1 { color: #f87171; font-size: 3em; margin-bottom: 10px; }" +
-                "p { color: #94a3b8; font-size: 1.2em; }" +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<h1>404 Not Found</h1>" +
-                "<p>No matching servlet was found for this request.</p>" +
-                "</body>" +
-                "</html>";
+        String body = "";
+        java.io.File htmlFile = new java.io.File("html_files/404.html");
+        if (htmlFile.exists() && htmlFile.isFile()) {
+            body = new String(java.nio.file.Files.readAllBytes(htmlFile.toPath()), StandardCharsets.UTF_8);
+        }
 
         String response = "HTTP/1.1 404 Not Found\r\n" +
                 "Content-Type: text/html; charset=UTF-8\r\n" +

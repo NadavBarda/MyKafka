@@ -66,45 +66,34 @@ public class TopicDisplayer implements Servlet {
     }
 
     private String generateHtml(String alertMessage) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<html>")
-                .append("<head><title>Topics Status</title>")
-                .append("<style>")
-                .append("body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }")
-                .append("table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0; background-color: #1e293b; border-radius: 8px; overflow: hidden; }")
-                .append("th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; word-break: break-word; }")
-                .append("th { background-color: #38bdf8; color: #0f172a; font-weight: bold; }")
-                .append("tr:hover { background-color: #334155; }")
-                .append(".alert { padding: 12px; background-color: #f87171; color: #0f172a; border-radius: 6px; margin-bottom: 15px; max-width: 600px; font-weight: 600; }")
-                .append("</style>")
-                .append("</head>")
-                .append("<body>");
-
-        if (alertMessage != null) {
-            sb.append("<div class=\"alert\">⚠️ ").append(HtmlUtil.escapeHtml(alertMessage)).append("</div>");
+        String template = "";
+        java.io.File htmlFile = new java.io.File("html_files/topics.html");
+        if (htmlFile.exists() && htmlFile.isFile()) {
+            try {
+                template = new String(java.nio.file.Files.readAllBytes(htmlFile.toPath()), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                // Fallback to inline template if reading fails
+            }
         }
 
-        sb.append("<h2>Topic Values Dashboard</h2>")
-                .append("<table>")
-                .append("<thead><tr><th>Topic Name</th><th>Last Message Value</th></tr></thead>")
-                .append("<tbody>");
+        String alertHtml = "";
+        if (alertMessage != null) {
+            alertHtml = "<div class=\"alert\">⚠️ " + HtmlUtil.escapeHtml(alertMessage) + "</div>";
+        }
 
+        StringBuilder rowsBuilder = new StringBuilder();
         Collection<Topic> topics = TopicManagerSingleton.get().getTopics();
         for (Topic t : topics) {
             Message lastMsg = t.getLastMessage();
             String val = (lastMsg != null) ? HtmlUtil.escapeHtml(lastMsg.asText) : "<em>No message yet</em>";
-            sb.append("<tr>")
+            rowsBuilder.append("<tr>")
                     .append("<td>").append(HtmlUtil.escapeHtml(t.getName())).append("</td>")
                     .append("<td>").append(val).append("</td>")
-                    .append("</tr>");
+                    .append("</tr>\n");
         }
 
-        sb.append("</tbody>")
-                .append("</table>")
-                .append("</body>")
-                .append("</html>");
-
-        return sb.toString();
+        return template.replace("{{ALERT}}", alertHtml)
+                .replace("{{ROWS}}", rowsBuilder.toString());
     }
 
     private void sendResponse(OutputStream toClient, int statusCode, String statusText, String body)
