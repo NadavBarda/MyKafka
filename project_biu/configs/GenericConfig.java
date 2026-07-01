@@ -84,13 +84,27 @@ public class GenericConfig implements Config {
         }
     }
 
+    private Class<?> resolveAgentClass(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            int firstDot = className.indexOf('.');
+            if (firstDot != -1) {
+                try {
+                    return resolveAgentClass(className.substring(firstDot + 1));
+                } catch (ClassNotFoundException ex) {
+                    throw e; 
+                }
+            } else {
+                throw e;
+            }
+        }
+    }
+
     private void createSingleAgent(String className, String[] subs, String[] pubs) {
         try {
-            int configsIndex = className.indexOf("configs.");
-            if (configsIndex != -1) {
-                className = className.substring(configsIndex);
-            }
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = resolveAgentClass(className);
+
             Constructor<?> constructor = clazz.getConstructor(String[].class, String[].class);
             Agent agent = (Agent) constructor.newInstance((Object) subs, (Object) pubs);
 
